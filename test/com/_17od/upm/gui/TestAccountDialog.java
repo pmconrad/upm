@@ -37,51 +37,42 @@ public  class TestAccountDialog extends TestCase {
  public void testInclUpperCaseTrue() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
    //Using reflection to test private method
-   Class myTarget = AccountDialog.class;
-   Class params[] = new Class[1];
-   params[0] = boolean.class;
-
-   Method method = myTarget.getDeclaredMethod(InclUpperCaseMethod, new Class[] {String.class});
+   Class<AccountDialog> myTarget = AccountDialog.class;
+   Method method = myTarget.getDeclaredMethod(InclUpperCaseMethod, String.class);
    method.setAccessible(true);
 
    String Password = "Klfjjru!234";
    Boolean result = (Boolean)method.invoke(method, Password);
 
-   assertTrue(result.booleanValue());
+   assertTrue(result);
 
  }
 
  public void testInclUpperCaseFalse() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
     //Using reflection to test private method
-    Class myTarget = AccountDialog.class;
-    Class params[] = new Class[1];
-    params[0] = boolean.class;
-
-    Method method = myTarget.getDeclaredMethod(InclUpperCaseMethod, new Class[] {String.class});
+    Class<AccountDialog> myTarget = AccountDialog.class;
+    Method method = myTarget.getDeclaredMethod(InclUpperCaseMethod, String.class);
     method.setAccessible(true);
 
     String Password = "kllfmjiugiwug@#$%%^k856";
     Boolean result = (Boolean)method.invoke(method, Password);
 
-    assertFalse(result.booleanValue());
+    assertFalse(result);
 
  }
 
 public void testInclLowerCaseTrue() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
    //Using reflection to test private method
-   Class myTarget = AccountDialog.class;
-   Class params[] = new Class[1];
-   params[0] = boolean.class;
-
-   Method method = myTarget.getDeclaredMethod(InclLowerCaseMethod, new Class[] {String.class});
+   Class<AccountDialog> myTarget = AccountDialog.class;
+   Method method = myTarget.getDeclaredMethod(InclLowerCaseMethod, String.class);
    method.setAccessible(true);
 
    String Password = "hghtkghjKLLP123%^&";
    Boolean result = (Boolean)method.invoke(method, Password);
 
-   assertTrue(result.booleanValue());
+   assertTrue(result);
 
  }
 
@@ -89,120 +80,100 @@ public void testInclLowerCaseTrue() throws SecurityException, NoSuchMethodExcept
 public void testInclLowerCaseFalse() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
    //Using reflection to test private method
-   Class myTarget = AccountDialog.class;
-   Class params[] = new Class[1];
-   params[0] = boolean.class;
-
-   Method method = myTarget.getDeclaredMethod(InclLowerCaseMethod, new Class[] {String.class});
+   Class<AccountDialog> myTarget = AccountDialog.class;
+   Method method = myTarget.getDeclaredMethod(InclLowerCaseMethod, String.class);
    method.setAccessible(true);
 
    String Password = "KGHJLMBCX78990^&**";
    Boolean result = (Boolean)method.invoke(method, Password);
 
-   assertFalse(result.booleanValue());
+   assertFalse(result);
 
  }
 
  public void testInclNumberTrue() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
     //Using reflection to test private method
-    Class myTarget = AccountDialog.class;
-    Class params[] = new Class[1];
-    params[0] = boolean.class;
-
-    Method method = myTarget.getDeclaredMethod(InclNumberMethod, new Class[] {String.class});
+    Class<AccountDialog> myTarget = AccountDialog.class;
+    Method method = myTarget.getDeclaredMethod(InclNumberMethod, String.class);
     method.setAccessible(true);
 
     String Password = "Kghkfrjgir*&^$%4523";
     Boolean result = (Boolean)method.invoke(method, Password);
 
-    assertTrue(result.booleanValue());
+    assertTrue(result);
 
  }
 
  public void testInclNumberFalse() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
      //Using reflection to test private method
-     Class myTarget = AccountDialog.class;
-     Class params[] = new Class[1];
-     params[0] = boolean.class;
-
-     Method method = myTarget.getDeclaredMethod(InclNumberMethod, new Class[] {String.class});
+     Class<AccountDialog> myTarget = AccountDialog.class;
+     Method method = myTarget.getDeclaredMethod(InclNumberMethod, String.class);
      method.setAccessible(true);
 
      String Password = "KJHHGhnnfhhshd&*()hghg";
      Boolean result = (Boolean)method.invoke(method, Password);
 
-     assertFalse(result.booleanValue());
+     assertFalse(result);
 
  }
 
  public void testInclEscapeTrue() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
      //Using reflection to test private method
-     Class myTarget = AccountDialog.class;
-     Class params[] = new Class[1];
-     params[0] = boolean.class;
-
-     Method method = myTarget.getDeclaredMethod(InclEscapeMethod, new Class[] {String.class});
+     Class<AccountDialog> myTarget = AccountDialog.class;
+     Method method = myTarget.getDeclaredMethod(InclEscapeMethod, String.class);
      method.setAccessible(true);
 
      String Password = "Jajjggj*hgjf12364";
      Boolean result = (Boolean)method.invoke(method, Password);
 
-     assertTrue(result.booleanValue());
+     assertTrue(result);
 
  }
 
 public void testInclEscapeFalse() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
      //Using reflection to test private method
-     Class myTarget = AccountDialog.class;
-     Class params[] = new Class[1];
-     params[0] = boolean.class;
-
-     Method method = myTarget.getDeclaredMethod(InclEscapeMethod, new Class[] {String.class});
+     Class<AccountDialog> myTarget = AccountDialog.class;
+     Method method = myTarget.getDeclaredMethod(InclEscapeMethod, String.class);
      method.setAccessible(true);
 
      String Password = "JKhghgloeor159645";
      Boolean result = (Boolean)method.invoke(method, Password);
 
-     assertFalse(result.booleanValue());
+     assertFalse(result);
 
  }
 
 public void testGeneratePassword() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
 
      //Using reflection to test private method
-     Class myTarget = AccountDialog.class;
-     Class params[] = new Class[1];
-     params[0] = String.class;
-
-
-
-     Method method = myTarget.getDeclaredMethod(GeneratePasswordMethod, new Class[] {int.class, boolean.class});
+     Class<AccountDialog> myTarget = AccountDialog.class;
+     Method method = myTarget.getDeclaredMethod(GeneratePasswordMethod, int.class, boolean.class);
      method.setAccessible(true);
 
-     Integer Length = new Integer(10);
-     Integer Length2 = new Integer(7);
-     String result = (String)method.invoke(method, new Object[] {Length, Boolean.TRUE});
-     String result2 = (String)method.invoke(method, new Object[] {Length, Boolean.FALSE});
-     String result3 = (String)method.invoke(method, new Object[] {Length2, Boolean.TRUE});
-     String result4 = (String)method.invoke(method, new Object[] {Length2, Boolean.FALSE});
+     Integer Length = 10;
+     Integer Length2 = 7;
+     String result = (String)method.invoke(method, Length, Boolean.TRUE);
+     String result2 = (String)method.invoke(method, Length, Boolean.FALSE);
+     String result3 = (String)method.invoke(method, Length2, Boolean.TRUE);
+     String result4 = (String)method.invoke(method, Length2, Boolean.FALSE);
 
      assertEquals(10,result.length(), 0.1);
      assertEquals(10,result2.length(), 0.1);
-     assertNotSame(new Integer(12), new Integer(result.length()));
-     assertNotSame(new Integer(12), new Integer(result2.length()));
-     assertNotSame(new Integer(9), new Integer(result.length()));
-     assertNotSame(new Integer(9), new Integer(result2.length()));
+     assertNotSame(12, result.length());
+     assertNotSame(12, result2.length());
+     assertNotSame(9, result.length());
+     assertNotSame(9, result2.length());
 
      assertEquals(7,result3.length(), 0.1);
      assertEquals(7,result4.length(), 0.1);
-     assertNotSame(new Integer(12), new Integer(result3.length()));
-     assertNotSame(new Integer(12), new Integer(result4.length()));
-     assertNotSame(new Integer(9), new Integer(result3.length()));
-     assertNotSame(new Integer(9), new Integer(result4.length()));
+     assertNotSame(12, result3.length());
+     assertNotSame(12, result4.length());
+     assertNotSame(9, result3.length());
+     assertNotSame(9, result4.length());
 
  }
 }

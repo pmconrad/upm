@@ -63,17 +63,16 @@ import com._17od.upm.util.Util;
 
 public class DatabaseActions {
 
-    private static Log LOG = LogFactory.getLog(DatabaseActions.class);
+    private static final Log LOG = LogFactory.getLog(DatabaseActions.class);
 
-    private MainWindow mainWindow;
+    private final MainWindow mainWindow;
     private PasswordDatabase database;
-    private ArrayList accountNames;
+    private ArrayList<String> accountNames;
     private boolean localDatabaseDirty = true;
     private PasswordDatabasePersistence dbPers;
     private FileMonitor fileMonitor;
     private boolean databaseNeedsReload = false;
 
-    private boolean lockIfInactive;
     private int msToWaitBeforeClosingDB;
 
     private boolean runSetDBDirtyThread = true;
@@ -113,7 +112,7 @@ public class DatabaseActions {
             });
             dialog.show();
 
-            if (pane.getValue().equals(new Integer(JOptionPane.OK_OPTION))) {
+            if (pane.getValue().equals(JOptionPane.OK_OPTION)) {
                 if (!Arrays.equals(masterPassword.getPassword(), confirmedMasterPassword.getPassword())) {
                     JOptionPane.showMessageDialog(mainWindow, Translator.translate("passwordsDontMatch"));
                 } else {
@@ -123,7 +122,7 @@ public class DatabaseActions {
                 return;
             }
 
-        } while (passwordsMatch == false);
+        } while (!passwordsMatch);
 
         if (newDatabaseFile.exists()) {
             newDatabaseFile.delete();
@@ -132,13 +131,13 @@ public class DatabaseActions {
         database = new PasswordDatabase(newDatabaseFile);
         dbPers = new PasswordDatabasePersistence(masterPassword.getPassword());
         saveDatabase();
-        accountNames = new ArrayList();
+        accountNames = new ArrayList<>();
         doOpenDatabaseActions();
 
         // If a "Database to Load on Startup" hasn't been set yet then ask the
         // user if they'd like to open this database on startup.
         if (Preferences.get(Preferences.ApplicationOptions.DB_TO_LOAD_ON_STARTUP) == null ||
-                Preferences.get(Preferences.ApplicationOptions.DB_TO_LOAD_ON_STARTUP).equals("")) {
+                Preferences.get(Preferences.ApplicationOptions.DB_TO_LOAD_ON_STARTUP).isEmpty()) {
             int option = JOptionPane.showConfirmDialog(mainWindow,
                     Translator.translate("setNewLoadOnStartupDatabase"),
                     Translator.translate("newPasswordDatabase"),
@@ -174,7 +173,7 @@ public class DatabaseActions {
             } while (!passwordCorrect && okClicked);
 
             //If the master password was entered correctly then the next step is to get the new master password
-            if (passwordCorrect == true) {
+            if (passwordCorrect) {
 
                     final JPasswordField masterPassword = new JPasswordField("");
                     boolean passwordsMatch = false;
@@ -196,7 +195,7 @@ public class DatabaseActions {
                         dialog.show();
 
                         buttonClicked = pane.getValue();
-                        if (buttonClicked.equals(new Integer(JOptionPane.OK_OPTION))) {
+                        if (buttonClicked.equals(JOptionPane.OK_OPTION)) {
                             if (!Arrays.equals(masterPassword.getPassword(), confirmedMasterPassword.getPassword())) {
                                 JOptionPane.showMessageDialog(mainWindow, Translator.translate("passwordsDontMatch"));
                             } else {
@@ -204,10 +203,10 @@ public class DatabaseActions {
                             }
                         }
 
-                    } while (buttonClicked.equals(new Integer(JOptionPane.OK_OPTION)) && !passwordsMatch);
+                    } while (buttonClicked.equals(JOptionPane.OK_OPTION) && !passwordsMatch);
 
                     //If the user clicked OK and the passwords match then change the database password
-                    if (buttonClicked.equals(new Integer(JOptionPane.OK_OPTION)) && passwordsMatch) {
+                    if (buttonClicked.equals(JOptionPane.OK_OPTION) && passwordsMatch) {
                         this.dbPers.getEncryptionService().initCipher(masterPassword.getPassword());
                         saveDatabase();
                     }
@@ -244,7 +243,7 @@ public class DatabaseActions {
         mainWindow.getStatusBar().setText("");
         databaseNeedsReload = false;
 
-        SortedListModel listview = (SortedListModel) mainWindow.getAccountsListview().getModel();
+        SortedListModel<String> listview = (SortedListModel<String>) mainWindow.getAccountsListview().getModel();
         listview.clear();
 
         mainWindow.getEditAccountButton().setEnabled(false);
@@ -306,7 +305,7 @@ public class DatabaseActions {
     }
 
     private void configureAutoLock() {
-        lockIfInactive = Preferences.get(
+        boolean lockIfInactive = Preferences.get(
                 Preferences.ApplicationOptions.DATABASE_AUTO_LOCK, "false").
                     equals("true");
         msToWaitBeforeClosingDB = Preferences.getInt(
@@ -327,12 +326,11 @@ public class DatabaseActions {
         }
     }
 
-    public ArrayList getAccountNames() {
-        ArrayList dbAccounts = database.getAccounts();
-        ArrayList accountNames = new ArrayList();
-        for (int i=0; i<dbAccounts.size(); i++) {
-            AccountInformation ai = (AccountInformation) dbAccounts.get(i);
-            String accountName = (String) ai.getAccountName();
+    public ArrayList<String> getAccountNames() {
+        ArrayList<AccountInformation> dbAccounts = database.getAccounts();
+        ArrayList<String> accountNames = new ArrayList<>();
+        for (AccountInformation dbAccount : dbAccounts) {
+            String accountName = dbAccount.getAccountName();
             accountNames.add(accountName);
         }
         return accountNames;
@@ -357,7 +355,7 @@ public class DatabaseActions {
         });
         dialog.show();
 
-        if (pane.getValue() != null && pane.getValue().equals(new Integer(JOptionPane.OK_OPTION))) {
+        if (pane.getValue() != null && pane.getValue().equals(JOptionPane.OK_OPTION)) {
             password = masterPassword.getPassword();
         }
 
@@ -381,8 +379,6 @@ public class DatabaseActions {
                 if (password == null) {
                     okClicked = false;
                 }
-            } else {
-                okClicked = true;
             }
 
             if (okClicked) {
@@ -426,15 +422,14 @@ public class DatabaseActions {
     public void deleteAccount() throws IOException, CryptoException, TransportException, ProblemReadingDatabaseFile, PasswordDatabaseException {
 
         if (getLatestVersionOfDatabase()) {
-            SortedListModel listview = (SortedListModel) mainWindow.getAccountsListview().getModel();
+            SortedListModel<String> listview = (SortedListModel<String>) mainWindow.getAccountsListview().getModel();
             String selectedAccName = (String) mainWindow.getAccountsListview().getSelectedValue();
 
             int buttonSelected = JOptionPane.showConfirmDialog(mainWindow, Translator.translate("askConfirmDeleteAccount", selectedAccName), Translator.translate("confirmDeleteAccount"), JOptionPane.YES_NO_OPTION);
             if (buttonSelected == JOptionPane.OK_OPTION) {
                 //Remove the account from the listview, accountNames arraylist & the database
                 listview.removeElement(selectedAccName);
-                int i = accountNames.indexOf(selectedAccName);
-                accountNames.remove(i);
+                accountNames.remove(selectedAccName);
                 database.deleteAccount(selectedAccName);
                 saveDatabase();
                 //[1375385] Call the filter method so that the listview is
@@ -496,11 +491,7 @@ public class DatabaseActions {
 
 
     private boolean databaseHasRemoteInstance() {
-        if (database.getDbOptions().getRemoteLocation().equals("")) {
-            return false;
-        } else {
-            return true;
-        }
+        return !database.getDbOptions().getRemoteLocation().isEmpty();
     }
 
 
@@ -544,8 +535,7 @@ public class DatabaseActions {
                     if (accountName.equals(database.getDbOptions().getAuthDBEntry())) {
                         database.getDbOptions().setAuthDBEntry(accInfo.getAccountName());
                     }
-                    int i = accountNames.indexOf(accountName);
-                    accountNames.remove(i);
+                    accountNames.remove(accountName);
                     accountNames.add(accInfo.getAccountName());
                     //[1375390] Ensure that the listview is properly filtered after an edit
                     filter();
@@ -560,11 +550,10 @@ public class DatabaseActions {
     public void filter() {
         String filterStr = mainWindow.getSearchField().getText().toLowerCase();
 
-        ArrayList filteredAccountsList = new ArrayList();
-        for (int i=0; i<accountNames.size(); i++) {
-            String accountName = (String) accountNames.get(i);
-            if (filterStr.equals("") || accountName.toLowerCase().indexOf(filterStr) != -1) {
-                filteredAccountsList.add(accountName);
+        ArrayList<String> filteredAccountsList = new ArrayList<>();
+        for (String name : accountNames) {
+            if (filterStr.isEmpty() || name.toLowerCase().contains(filterStr)) {
+                filteredAccountsList.add(name);
             }
         }
 
@@ -577,14 +566,14 @@ public class DatabaseActions {
     }
 
 
-    public void populateListview(ArrayList accountNames) {
-        SortedListModel listview = (SortedListModel) mainWindow.getAccountsListview().getModel();
+    public void populateListview(ArrayList<String> accountNames) {
+        SortedListModel<String> listview = (SortedListModel<String>) mainWindow.getAccountsListview().getModel();
 
         listview.clear();
         mainWindow.getAccountsListview().clearSelection();
 
-        for (int i=0; i<accountNames.size(); i++) {
-            listview.addElement(accountNames.get(i));
+        for (String accountName : accountNames) {
+            listview.addElement(accountName);
         }
 
         setButtonState();
@@ -818,7 +807,7 @@ public class DatabaseActions {
             String authDBEntry = database.getDbOptions().getAuthDBEntry();
             String httpUsername = null;
             String httpPassword = null;
-            if (!authDBEntry.equals("")) {
+            if (!authDBEntry.isEmpty()) {
                 httpUsername = database.getAccount(authDBEntry).getUserId();
                 httpPassword = database.getAccount(authDBEntry).getPassword();
             }
@@ -935,7 +924,7 @@ public class DatabaseActions {
 
         AccountsCSVMarshaller marshaller = new AccountsCSVMarshaller();
         try {
-            marshaller.marshal(this.database.getAccounts(), exportFile);
+            marshaller.marshal(database.getAccounts(), exportFile);
         } catch (ExportException e) {
             JOptionPane.showMessageDialog(mainWindow, e.getMessage(), Translator.translate("problemExporting"), JOptionPane.ERROR_MESSAGE);
         }
@@ -955,14 +944,13 @@ public class DatabaseActions {
                 // Unmarshall the accounts from the CSV file
                 try {
                     AccountsCSVMarshaller marshaller = new AccountsCSVMarshaller();
-                    ArrayList accountsInCSVFile = marshaller.unmarshal(csvFile);
-                    ArrayList accountsToImport = new ArrayList();
+                    ArrayList<AccountInformation> accountsInCSVFile = marshaller.unmarshal(csvFile);
+                    ArrayList<AccountInformation> accountsToImport = new ArrayList<>();
 
                     boolean importCancelled = false;
                     // Add each account to the open database. If the account
                     // already exits the prompt to overwrite
-                    for (int i=0; i<accountsInCSVFile.size(); i++) {
-                        AccountInformation importedAccount = (AccountInformation) accountsInCSVFile.get(i);
+                    for (AccountInformation importedAccount : accountsInCSVFile) {
                         if (database.getAccount(importedAccount.getAccountName()) != null) {
                             Object[] options = {"Overwrite Existing", "Keep Existing", "Cancel"};
                             int answer = JOptionPane.showOptionDialog(
@@ -986,9 +974,8 @@ public class DatabaseActions {
                         accountsToImport.add(importedAccount);
                     }
 
-                    if (!importCancelled && accountsToImport.size() > 0) {
-                        for (int i=0; i<accountsToImport.size(); i++) {
-                            AccountInformation accountToImport = (AccountInformation) accountsToImport.get(i);
+                    if (!importCancelled && !accountsToImport.isEmpty()) {
+                        for (AccountInformation accountToImport : accountsToImport) {
                             database.deleteAccount(accountToImport.getAccountName());
                             database.addAccount(accountToImport);
                         }
@@ -997,11 +984,7 @@ public class DatabaseActions {
                         filter();
                     }
 
-                } catch (ImportException e) {
-                    JOptionPane.showMessageDialog(mainWindow, e.getMessage(), Translator.translate("problemImporting"), JOptionPane.ERROR_MESSAGE);
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(mainWindow, e.getMessage(), Translator.translate("problemImporting"), JOptionPane.ERROR_MESSAGE);
-                } catch (CryptoException e) {
+                } catch (ImportException | IOException | CryptoException e) {
                     JOptionPane.showMessageDialog(mainWindow, e.getMessage(), Translator.translate("problemImporting"), JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -1061,11 +1044,7 @@ public class DatabaseActions {
         if (fileMonitor != null) {
             fileMonitor.start();
         }
-        if (databaseHasRemoteInstance()) {
-            setLocalDatabaseDirty(true);
-        } else {
-            setLocalDatabaseDirty(false);
-        }
+        setLocalDatabaseDirty(databaseHasRemoteInstance());
     }
 
 
@@ -1090,8 +1069,8 @@ public class DatabaseActions {
 
 
     private void setStatusBarText() {
-        String status = null;
-        Color color = null;
+        String status;
+        Color color;
         if (databaseHasRemoteInstance()) {
             if (localDatabaseDirty) {
                 status = Translator.translate("unsynchronised");
@@ -1100,7 +1079,7 @@ public class DatabaseActions {
                 status = Translator.translate("synchronised");
                 color = Color.BLACK;
             }
-            status = Translator.translate("revision") + ' ' + String.valueOf(database.getRevision()) + " - " + status;
+            status = Translator.translate("revision") + ' ' + database.getRevision() + " - " + status;
         } else {
             status = Translator.translate("localDatabase");
             color = Color.BLACK;

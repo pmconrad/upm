@@ -47,17 +47,17 @@ import com._17od.upm.util.Preferences;
 
 public class HTTPTransport extends Transport {
 
-    private HttpClient client;
+    private final HttpClient client;
 
 
     public HTTPTransport() {
 
         client = new HttpClient();
 
-        Boolean acceptSelfSignedCerts =
-                new Boolean(Preferences.get(
+        boolean acceptSelfSignedCerts =
+                Boolean.parseBoolean(Preferences.get(
                         Preferences.ApplicationOptions.HTTPS_ACCEPT_SELFSIGNED_CERTS));
-        if (acceptSelfSignedCerts.booleanValue()) {
+        if (acceptSelfSignedCerts) {
             // Create a Protcol handler which contains a HTTPS socket factory
             // capable of accepting self signed and otherwise invalid certificates.
             Protocol httpsProtocol = new Protocol("https",
@@ -67,8 +67,8 @@ public class HTTPTransport extends Transport {
         }
 
         //Get the proxy settings
-        Boolean proxyEnabled = new Boolean(Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_ENABLED));
-        if (proxyEnabled.booleanValue()) {
+        boolean proxyEnabled = Boolean.parseBoolean(Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_ENABLED));
+        if (proxyEnabled) {
             String proxyHost = Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_HOST);
             String proxyPortStr = Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_PORT);
             String proxyUserName = Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_USERNAME);
@@ -115,7 +115,7 @@ public class HTTPTransport extends Transport {
 
             //Set the HTTP authentication details
             if (username != null) {
-                Credentials creds = new UsernamePasswordCredentials(new String(username), new String(password));
+                Credentials creds = new UsernamePasswordCredentials(username, password);
                 URL url = new URL(targetLocation);
                 AuthScope authScope = new AuthScope(url.getHost(), url.getPort());
                 client.getState().setCredentials(authScope, creds);
@@ -177,7 +177,7 @@ public class HTTPTransport extends Transport {
 
             //Set the authentication details
             if (username != null) {
-                Credentials creds = new UsernamePasswordCredentials(new String(username), new String(password));
+                Credentials creds = new UsernamePasswordCredentials(username, password);
                 URL urlObj = new URL(url);
                 AuthScope authScope = new AuthScope(urlObj.getHost(), urlObj.getPort());
                 client.getState().setCredentials(authScope, creds);
@@ -250,7 +250,7 @@ public class HTTPTransport extends Transport {
 
             //Set the authentication details
             if (username != null) {
-                Credentials creds = new UsernamePasswordCredentials(new String(username), new String(password));
+                Credentials creds = new UsernamePasswordCredentials(username, password);
                 URL url = new URL(targetLocation);
                 AuthScope authScope = new AuthScope(url.getHost(), url.getPort());
                 client.getState().setCredentials(authScope, creds);
@@ -293,11 +293,7 @@ public class HTTPTransport extends Transport {
 
     
     private boolean isNotEmpty(String stringToCheck) {
-        boolean retVal = false;
-        if (stringToCheck != null && !stringToCheck.trim().equals("")) {
-            retVal = true;
-        }
-        return retVal;
+        return stringToCheck != null && !stringToCheck.trim().isEmpty();
     }
 
 }

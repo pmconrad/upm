@@ -58,7 +58,7 @@ public class DatabasePropertiesDialog extends EscapeDialog {
     
     private boolean databaseNeedsSaving = false;
     
-    public DatabasePropertiesDialog(final JFrame frame, ArrayList accountNames, final PasswordDatabase database) {
+    public DatabasePropertiesDialog(final JFrame frame, ArrayList<String> accountNames, final PasswordDatabase database) {
         super(frame, Translator.translate("databaseProperties"), true);
         
         Container container = getContentPane();
@@ -120,7 +120,7 @@ public class DatabasePropertiesDialog extends EscapeDialog {
         sAccountNames[0] = "";
         System.arraycopy(accountNames.toArray(), 0, sAccountNames, 1, accountNames.size());
         Arrays.sort(sAccountNames);
-        final JComboBox auth = new JComboBox(sAccountNames);
+        final JComboBox<String> auth = new JComboBox<>(sAccountNames);
         auth.setSelectedItem(database.getDbOptions().getAuthDBEntry());
         c.gridx = 0;
         c.gridy = 3;
@@ -189,7 +189,7 @@ public class DatabasePropertiesDialog extends EscapeDialog {
         }
 
         // If the url/remoteLocation is not empty then we need to validate the URL and upload the database
-        if (!remoteLocation.equals("")) {
+        if (!remoteLocation.isEmpty()) {
 
             // Check the validity of the URL given by the user
             URL url = validateURL(remoteLocation);
@@ -202,7 +202,7 @@ public class DatabasePropertiesDialog extends EscapeDialog {
                     if (!database.getDbOptions().getRemoteLocation().equals(remoteLocation)) {
                         try {
                             Transport transport = Transport.getTransportForURL(url);
-                            if (!authEntry.equals("")) {
+                            if (!authEntry.isEmpty()) {
                                 String userId = database.getAccount(authEntry).getUserId();
                                 String password = database.getAccount(authEntry).getPassword();
                                 transport.put(remoteLocation, database.getDatabaseFile(), userId, password);

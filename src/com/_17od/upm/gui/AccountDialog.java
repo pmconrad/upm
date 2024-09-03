@@ -113,13 +113,13 @@ public class AccountDialog extends EscapeDialog {
 	private JTextField url;
 	private JTextField accountName;
 	private boolean okClicked = false;
-	private ArrayList existingAccounts;
+	private ArrayList<String> existingAccounts;
 	private JFrame parentWindow;
 	private boolean accountChanged = false;
 	private char defaultEchoChar;
 
 	public AccountDialog(AccountInformation account, JFrame parentWindow, boolean readOnly,
-			ArrayList existingAccounts) {
+			ArrayList<String> existingAccounts) {
 		super(parentWindow, true);
 
 		boolean addingAccount = false;
@@ -139,7 +139,7 @@ public class AccountDialog extends EscapeDialog {
 		String title = null;
 		if (readOnly) {
 			title = Translator.translate("viewAccount");
-		} else if (!readOnly && account.getAccountName().trim().equals("")) {
+		} else if (account.getAccountName().trim().isEmpty()) {
 			title = Translator.translate("addAccount");
 			addingAccount = true;
 		} else {
@@ -172,7 +172,7 @@ public class AccountDialog extends EscapeDialog {
 		// buttons.
 		JPanel accountPanel = new JPanel(new GridBagLayout());
 
-		accountName = new JTextField(new String(pAccount.getAccountName()), 20);
+		accountName = new JTextField(pAccount.getAccountName(), 20);
 		if (readOnly) {
 			accountName.setEditable(false);
 		}
@@ -257,7 +257,7 @@ public class AccountDialog extends EscapeDialog {
 		// buttons.
 		JPanel idPanel = new JPanel(new GridBagLayout());
 
-		userId = new JTextField(new String(pAccount.getUserId()), 20);
+		userId = new JTextField(pAccount.getUserId(), 20);
 		if (readOnly) {
 			userId.setEditable(false);
 		}
@@ -342,7 +342,7 @@ public class AccountDialog extends EscapeDialog {
 		// paste buttons, and hide password checkbox
 		JPanel passwordPanel = new JPanel(new GridBagLayout());
 
-		password = new JPasswordField(new String(pAccount.getPassword()), 20);
+		password = new JPasswordField(pAccount.getPassword(), 20);
 		// allow CTRL-C on the password field
 		password.putClientProperty("JPasswordField.cutCopyAllowed", Boolean.TRUE);
 		password.setEditable(!readOnly);
@@ -369,28 +369,28 @@ public class AccountDialog extends EscapeDialog {
 			public void actionPerformed(ActionEvent actionevent) {
 				// Get the user's preference about including or not Escape
 				// Characters to generated passwords
-				Boolean includeEscapeChars = new Boolean(
+				boolean includeEscapeChars = Boolean.parseBoolean(
 						Preferences.get(Preferences.ApplicationOptions.INCLUDE_ESCAPE_CHARACTERS, "true"));
 				int pwLength = Preferences.getInt(Preferences.ApplicationOptions.ACCOUNT_PASSWORD_LENGTH, 8);
 				String Password;
 
-				if ((includeEscapeChars.booleanValue()) && (pwLength > 3)) {
+				if (includeEscapeChars && (pwLength > 3)) {
 					// Verify that the generated password satisfies the criteria
 					// for strong passwords(including Escape Characters)
 					do {
-						Password = GeneratePassword(pwLength, includeEscapeChars.booleanValue());
-					} while (!(CheckPassStrong(Password, includeEscapeChars.booleanValue())));
+						Password = GeneratePassword(pwLength, includeEscapeChars);
+					} while (!(CheckPassStrong(Password, includeEscapeChars)));
 
-				} else if (!(includeEscapeChars.booleanValue()) && (pwLength > 2)) {
+				} else if (!includeEscapeChars && (pwLength > 2)) {
 					// Verify that the generated password satisfies the criteria
 					// for strong passwords(excluding Escape Characters)
 					do {
-						Password = GeneratePassword(pwLength, includeEscapeChars.booleanValue());
-					} while (!(CheckPassStrong(Password, includeEscapeChars.booleanValue())));
+						Password = GeneratePassword(pwLength, includeEscapeChars);
+					} while (!(CheckPassStrong(Password, includeEscapeChars)));
 
 				} else {
 					// Else a weak password of 3 or less chars will be produced
-					Password = GeneratePassword(pwLength, includeEscapeChars.booleanValue());
+					Password = GeneratePassword(pwLength, includeEscapeChars);
 				}
 				password.setText(Password);
 			}
@@ -461,9 +461,9 @@ public class AccountDialog extends EscapeDialog {
 			}
 		});
 
-		Boolean hideAccountPassword = new Boolean(
+		boolean hideAccountPassword = Boolean.parseBoolean(
 				Preferences.get(Preferences.ApplicationOptions.ACCOUNT_HIDE_PASSWORD, "true"));
-		hidePasswordCheckbox.setSelected(hideAccountPassword.booleanValue());
+		hidePasswordCheckbox.setSelected(hideAccountPassword);
 
 		c.gridx = 0;
 		c.gridy = 1;
@@ -500,7 +500,7 @@ public class AccountDialog extends EscapeDialog {
 		// This panel will hold the URL field and the copy and paste buttons.
 		JPanel urlPanel = new JPanel(new GridBagLayout());
 
-		url = new JTextField(new String(pAccount.getUrl()), 20);
+		url = new JTextField(pAccount.getUrl(), 20);
 		if (readOnly) {
 			url.setEditable(false);
 		}
@@ -530,7 +530,7 @@ public class AccountDialog extends EscapeDialog {
 
 				// Check if the selected url is null or emty and inform the user
 				// via JoptioPane message
-				if ((urlText == null) || (urlText.length() == 0)) {
+				if ((urlText == null) || urlText.isEmpty()) {
 					JOptionPane.showMessageDialog(urlLaunchButton.getParent(),
 							Translator.translate("EmptyUrlJoptionpaneMsg"),
 							Translator.translate("UrlErrorJoptionpaneTitle"), JOptionPane.WARNING_MESSAGE);
@@ -624,7 +624,7 @@ public class AccountDialog extends EscapeDialog {
 		// buttons.
 		JPanel notesPanel = new JPanel(new GridBagLayout());
 
-		notes = new JTextArea(new String(pAccount.getNotes()), 10, 20);
+		notes = new JTextArea(pAccount.getNotes(), 10, 20);
 		if (readOnly) {
 			notes.setEditable(false);
 		}
@@ -756,7 +756,7 @@ public class AccountDialog extends EscapeDialog {
 		//
 		// Only check if an account with the same name exists if the account
 		// name has actually changed
-		if (accountChanged && existingAccounts.indexOf(accountName.getText().trim()) > -1) {
+		if (accountChanged && existingAccounts.contains(accountName.getText().trim())) {
 			JOptionPane.showMessageDialog(parentWindow,
 					Translator.translate("accountAlreadyExistsWithName", accountName.getText().trim()),
 					Translator.translate("accountAlreadyExists"), JOptionPane.ERROR_MESSAGE);
@@ -808,7 +808,7 @@ public class AccountDialog extends EscapeDialog {
 	 */
 	private static String GeneratePassword(int PassLength, boolean InclEscChars) {
 		SecureRandom random = new SecureRandom();
-		StringBuffer passwordBuffer = new StringBuffer();
+		StringBuilder passwordBuffer = new StringBuilder();
 
 		if (InclEscChars) {
 			for (int i = 0; i < PassLength; i++) {
@@ -859,19 +859,16 @@ public class AccountDialog extends EscapeDialog {
 	private static boolean InclUpperCase(String GeneratedPass) {
 		char[] PassWordArray = GeneratedPass.toCharArray();
 		boolean find = false;
-		outerloop: for (int i = 0; i < PassWordArray.length; i++) {
-			for (int j = 0; j < UPPERCASE_CHARS.length; j++) {
-				if (PassWordArray[i] == UPPERCASE_CHARS[j]) {
-					find = true;
-					break outerloop;
-				}
-			}
-		}
-		if (find) {
-			return true;
-		} else {
-			return false;
-		}
+		outerloop:
+        for (char c : PassWordArray) {
+            for (char uppercaseChar : UPPERCASE_CHARS) {
+                if (c == uppercaseChar) {
+                    find = true;
+                    break outerloop;
+                }
+            }
+        }
+		return find;
 	} // End InclUpperCase()
 
 	/**
@@ -884,19 +881,16 @@ public class AccountDialog extends EscapeDialog {
 	private static boolean InclLowerCase(String GeneratedPass) {
 		char[] PassWordArray = GeneratedPass.toCharArray();
 		boolean find = false;
-		outerloop: for (int i = 0; i < PassWordArray.length; i++) {
-			for (int j = 0; j < LOWERCASE_CHARS.length; j++) {
-				if (PassWordArray[i] == LOWERCASE_CHARS[j]) {
-					find = true;
-					break outerloop;
-				}
-			}
-		}
-		if (find) {
-			return true;
-		} else {
-			return false;
-		}
+		outerloop:
+        for (char c : PassWordArray) {
+            for (char lowercaseChar : LOWERCASE_CHARS) {
+                if (c == lowercaseChar) {
+                    find = true;
+                    break outerloop;
+                }
+            }
+        }
+		return find;
 	} // End InclLowerCase()
 
 	/**
@@ -909,19 +903,16 @@ public class AccountDialog extends EscapeDialog {
 	private static boolean InclNumber(String GeneratedPass) {
 		char[] PassWordArray = GeneratedPass.toCharArray();
 		boolean find = false;
-		outerloop: for (int i = 0; i < PassWordArray.length; i++) {
-			for (int j = 0; j < NUMBER_CHARS.length; j++) {
-				if (PassWordArray[i] == NUMBER_CHARS[j]) {
-					find = true;
-					break outerloop;
-				}
-			}
-		}
-		if (find) {
-			return true;
-		} else {
-			return false;
-		}
+		outerloop:
+        for (char c : PassWordArray) {
+            for (char numberChar : NUMBER_CHARS) {
+                if (c == numberChar) {
+                    find = true;
+                    break outerloop;
+                }
+            }
+        }
+		return find;
 	} // End InclNumber()
 
 	/**
@@ -934,19 +925,16 @@ public class AccountDialog extends EscapeDialog {
 	private static boolean InclEscape(String GeneratedPass) {
 		char[] PassWordArray = GeneratedPass.toCharArray();
 		boolean find = false;
-		outerloop: for (int i = 0; i < PassWordArray.length; i++) {
-			for (int j = 0; j < PUNCTUATION_CHARS.length; j++) {
-				if (PassWordArray[i] == PUNCTUATION_CHARS[j]) {
-					find = true;
-					break outerloop;
-				}
-			}
-		}
-		if (find) {
-			return true;
-		} else {
-			return false;
-		}
+		outerloop:
+        for (char c : PassWordArray) {
+            for (char punctuationChar : PUNCTUATION_CHARS) {
+                if (c == punctuationChar) {
+                    find = true;
+                    break outerloop;
+                }
+            }
+        }
+		return find;
 	} // End InclEscape()
 
 	/**
@@ -986,12 +974,10 @@ public class AccountDialog extends EscapeDialog {
 		if ((clipText != null) && clipText.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 			try {
 				text = (String) clipText.getTransferData(DataFlavor.stringFlavor);
-			} catch (UnsupportedFlavorException ex) {
-				ex.printStackTrace();
-			} catch (IOException ex) {
+			} catch (UnsupportedFlavorException | IOException ex) {
 				ex.printStackTrace();
 			}
-		}
+        }
 		textField.setText(text);
 	}
 
@@ -1008,12 +994,10 @@ public class AccountDialog extends EscapeDialog {
 		if ((clipText != null) && clipText.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 			try {
 				text = (String) clipText.getTransferData(DataFlavor.stringFlavor);
-			} catch (UnsupportedFlavorException ex) {
-				ex.printStackTrace();
-			} catch (IOException ex) {
+			} catch (UnsupportedFlavorException | IOException ex) {
 				ex.printStackTrace();
 			}
-		}
+        }
 		textArea.insert(text, textArea.getCaretPosition());
 		textArea.requestFocus();
 	}
@@ -1026,14 +1010,7 @@ public class AccountDialog extends EscapeDialog {
 	 * @return
 	 */
 	private boolean urlIsValid(String urL) {
-
-		UrlValidator urlValidator = new UrlValidator();
-		if (urlValidator.isValid(urL)) {
-			return true;
-		} else {
-			return false;
-		}
-
+		return new UrlValidator().isValid(urL);
 	}
 
 	/**
@@ -1049,12 +1026,10 @@ public class AccountDialog extends EscapeDialog {
 
 			try {
 				desktop.browse(new URI(url));
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (URISyntaxException e) {
+			} catch (IOException | URISyntaxException e) {
 				e.printStackTrace();
 			}
-		} else { // Linux and Mac specific code in order to launch url
+        } else { // Linux and Mac specific code in order to launch url
 			Runtime runtime = Runtime.getRuntime();
 
 			try {

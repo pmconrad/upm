@@ -41,8 +41,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.security.GeneralSecurityException;
-import javax.crypto.IllegalBlockSizeException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -62,7 +60,6 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -112,7 +109,6 @@ public class MainWindow extends JFrame implements ActionListener {
 	public static final String EXIT_TXT = "exitMenuItem";
 	public static final String EXPORT_TXT = "exportMenuItem";
 	public static final String IMPORT_TXT = "importMenuItem";
-	public static final String LOCK_TIMER_TXT = "lock";
 
 	private JButton addAccountButton;
 	private JButton editAccountButton;
@@ -147,16 +143,14 @@ public class MainWindow extends JFrame implements ActionListener {
 	private JMenuItem exportMenuItem;
 	private JMenuItem importMenuItem;
 
-	private JList accountsListview;
-	private JLabel statusBar = new JLabel(" ");
+	private JList<String> accountsListview;
+	private final JLabel statusBar = new JLabel(" ");
 	private JPanel databaseFileChangedPanel;
 	public static MainWindow AppWindow;
 
-	private DatabaseActions dbActions;
+	private final DatabaseActions dbActions;
 
-	public MainWindow(String title) throws ClassNotFoundException, InstantiationException, IllegalAccessException,
-			UnsupportedLookAndFeelException, IllegalBlockSizeException, IOException, GeneralSecurityException,
-			ProblemReadingDatabaseFile {
+	public MainWindow(String title) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		super(title);
 
 		setIconImage(Util.loadImage("upm.gif").getImage());
@@ -192,15 +186,15 @@ public class MainWindow extends JFrame implements ActionListener {
 		if (restore) {
 			restoreWindowBounds();
 		}
-		Boolean appAlwaysonTop = new Boolean(
+		boolean appAlwaysonTop = Boolean.parseBoolean(
 				Preferences.get(Preferences.ApplicationOptions.MAINWINDOW_ALWAYS_ON_TOP, "false"));
-		setAlwaysOnTop(appAlwaysonTop.booleanValue());
+		setAlwaysOnTop(appAlwaysonTop);
 		setVisible(true);
 
 		try {
 			// Load the startup database if it's configured
 			String db = Preferences.get(Preferences.ApplicationOptions.DB_TO_LOAD_ON_STARTUP);
-			if (db != null && !db.equals("")) {
+			if (db != null && !db.isEmpty()) {
 				File dbFile = new File(db);
 				if (!dbFile.exists()) {
 					dbActions.errorHandler(new Exception(Translator.translate("dbDoesNotExist", db)));
@@ -233,8 +227,8 @@ public class MainWindow extends JFrame implements ActionListener {
 					// Use the System look and feel
 					Preferences.load();
 					Translator.initialise();
-					Double jvmVersion = new Double(System.getProperty("java.specification.version"));
-					if (jvmVersion.doubleValue() < 1.4) {
+					double jvmVersion = Double.parseDouble(System.getProperty("java.specification.version"));
+					if (jvmVersion < 1.4) {
 						JOptionPane.showMessageDialog(null, Translator.translate("requireJava14"),
 								Translator.translate("problem"), JOptionPane.ERROR_MESSAGE);
 						System.exit(1);
@@ -365,11 +359,11 @@ public class MainWindow extends JFrame implements ActionListener {
 		getContentPane().add(resetSearchButton, c);
 
 		// The accounts listview row
-		accountsListview = new JList();
+		accountsListview = new JList<>();
 		accountsListview.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		accountsListview.setSelectedIndex(0);
 		accountsListview.setVisibleRowCount(10);
-		accountsListview.setModel(new SortedListModel());
+		accountsListview.setModel(new SortedListModel<String>());
 		JScrollPane accountsScrollList = new JScrollPane(accountsListview, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		accountsListview.addFocusListener(new FocusAdapter() {
@@ -410,18 +404,12 @@ public class MainWindow extends JFrame implements ActionListener {
 
 					try {
 						dbActions.reloadDatabaseBefore(new DeleteAccountAction());
-					} catch (InvalidPasswordException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (ProblemReadingDatabaseFile e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (IOException e1) {
+					} catch (InvalidPasswordException | ProblemReadingDatabaseFile | IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 
-				}
+                }
 			}
 		});
 
@@ -569,7 +557,7 @@ public class MainWindow extends JFrame implements ActionListener {
 
 				// Check if the selected url is null or emty and inform the user
 				// via JoptioPane message
-				if ((uRl == null) || (uRl.length() == 0)) {
+				if ((uRl == null) || uRl.isEmpty()) {
 					JOptionPane.showMessageDialog(launchURLButton.getParent(),
 							Translator.translate("EmptyUrlJoptionpaneMsg"),
 							Translator.translate("UrlErrorJoptionpaneTitle"), JOptionPane.WARNING_MESSAGE);
@@ -765,7 +753,7 @@ public class MainWindow extends JFrame implements ActionListener {
 
 				// Check if the selected url is null or emty and inform the user
 				// via JoptioPane message
-				if ((uRl == null) || (uRl.length() == 0)) {
+				if ((uRl == null) || uRl.isEmpty()) {
 					JOptionPane.showMessageDialog(accountMenu.getParent().getParent(),
 							Translator.translate("EmptyUrlJoptionpaneMsg"),
 							Translator.translate("UrlErrorJoptionpaneTitle"), JOptionPane.WARNING_MESSAGE);
@@ -818,18 +806,18 @@ public class MainWindow extends JFrame implements ActionListener {
 
 	}
 
-	public JList getAccountsListview() {
+	public JList<String> getAccountsListview() {
 		return accountsListview;
 	}
 
 	private void copyUsernameToClipboard() {
 		AccountInformation accInfo = dbActions.getSelectedAccount();
-		copyToClipboard(new String(accInfo.getUserId()));
+		copyToClipboard(accInfo.getUserId());
 	}
 
 	private void copyPasswordToClipboard() {
 		AccountInformation accInfo = dbActions.getSelectedAccount();
-		copyToClipboard(new String(accInfo.getPassword()));
+		copyToClipboard(accInfo.getPassword());
 	}
 
 	private void copyToClipboard(String s) {
@@ -841,14 +829,7 @@ public class MainWindow extends JFrame implements ActionListener {
 	// Use com.apache.commons.validator library in order to check the
 	// validity(proper formating, e.x http://www.url.com) of the given url
 	private boolean urlIsValid(String urL) {
-
-		UrlValidator urlValidator = new UrlValidator();
-		if (urlValidator.isValid(urL)) {
-			return true;
-		} else {
-			return false;
-		}
-
+		return new UrlValidator().isValid(urL);
 	}
 
 	// Method that get(as input) the selected Account URL and open this URL via
@@ -862,15 +843,11 @@ public class MainWindow extends JFrame implements ActionListener {
 			try {
 				desktop.browse(new URI(url));
 
-			} catch (IOException e) {
+			} catch (IOException | URISyntaxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-
 			}
-			// Linux and Mac specific code in order to launch url
+            // Linux and Mac specific code in order to launch url
 		} else {
 			Runtime runtime = Runtime.getRuntime();
 
@@ -921,34 +898,33 @@ public class MainWindow extends JFrame implements ActionListener {
 	 * Utility function for restoreWindowBounds
 	 */
 	private GraphicsConfiguration getGraphicsConfigurationContaining(int x, int y) {
-		ArrayList configs = new ArrayList();
+		ArrayList<GraphicsConfiguration> configs = new ArrayList<>();
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] devices = env.getScreenDevices();
-		for (int i = 0; i < devices.length; i++) {
-			GraphicsConfiguration[] gconfigs = devices[i].getConfigurations();
-			configs.addAll(Arrays.asList(gconfigs));
-		}
-		for (int i = 0; i < configs.size(); i++) {
-			GraphicsConfiguration config = ((GraphicsConfiguration) configs.get(i));
-			Rectangle bounds = config.getBounds();
-			if (bounds.contains(x, y)) {
-				return config;
-			}
-		}
+        for (GraphicsDevice device : devices) {
+            GraphicsConfiguration[] gconfigs = device.getConfigurations();
+            configs.addAll(Arrays.asList(gconfigs));
+        }
+        for (GraphicsConfiguration graphicsConfiguration : configs) {
+            Rectangle bounds = graphicsConfiguration.getBounds();
+            if (bounds.contains(x, y)) {
+                return graphicsConfiguration;
+            }
+        }
 		return null;
 	}
 
 	/**
 	 * Convenience method to iterate over all graphics configurations.
 	 */
-	private static ArrayList getConfigs() {
-		ArrayList result = new ArrayList();
+	private static ArrayList<GraphicsConfiguration> getConfigs() {
+		ArrayList<GraphicsConfiguration> result = new ArrayList<>();
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] devices = env.getScreenDevices();
-		for (int i = 0; i < devices.length; i++) {
-			GraphicsConfiguration[] configs = devices[i].getConfigurations();
-			result.addAll(Arrays.asList(configs));
-		}
+        for (GraphicsDevice device : devices) {
+            GraphicsConfiguration[] configs = device.getConfigurations();
+            result.addAll(Arrays.asList(configs));
+        }
 		return result;
 	}
 
@@ -1054,7 +1030,7 @@ public class MainWindow extends JFrame implements ActionListener {
 			} else if (event.getActionCommand() == MainWindow.ADD_ACCOUNT_TXT) {
 				dbActions.reloadDatabaseBefore(new AddAccountAction());
 			} else if (event.getActionCommand() == MainWindow.EDIT_ACCOUNT_TXT) {
-				String selectedAccName = (String) this.accountsListview.getSelectedValue();
+				String selectedAccName = this.accountsListview.getSelectedValue();
 				dbActions.reloadDatabaseBefore(new EditAccountAction(selectedAccName));
 			} else if (event.getActionCommand() == MainWindow.DELETE_ACCOUNT_TXT) {
 				dbActions.reloadDatabaseBefore(new DeleteAccountAction());
@@ -1154,7 +1130,7 @@ public class MainWindow extends JFrame implements ActionListener {
 	}
 
 	private class EditAccountAction implements ChangeDatabaseAction {
-		private String accountToEdit;
+		private final String accountToEdit;
 
 		public EditAccountAction(String accountToEdit) {
 			this.accountToEdit = accountToEdit;

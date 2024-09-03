@@ -33,7 +33,7 @@ import com.csvreader.CsvWriter;
 
 public class AccountsCSVMarshaller {
 
-    public void marshal(ArrayList accounts, File file) throws ExportException {
+    public void marshal(ArrayList<AccountInformation> accounts, File file) throws ExportException {
 
         if (file.exists()) {
             throw new ExportException("The file to export to already exists");
@@ -43,11 +43,9 @@ public class AccountsCSVMarshaller {
             FileWriter writer = new FileWriter(file);
     
             CsvWriter csvWriter = new CsvWriter(writer, ',');
-            for (int i=0; i<accounts.size(); i++) {
+            for (AccountInformation account : accounts) {
                 csvWriter.writeRecord(
-                        getAccountAsStringArray(
-                                (AccountInformation) accounts.get(i)
-                        )
+                        getAccountAsStringArray(account)
                 );
             }
             csvWriter.close();
@@ -57,8 +55,8 @@ public class AccountsCSVMarshaller {
 
     }
 
-    public ArrayList unmarshal(File file) throws ImportException {
-        ArrayList accounts = new ArrayList();
+    public ArrayList<AccountInformation> unmarshal(File file) throws ImportException {
+        ArrayList<AccountInformation> accounts = new ArrayList<>();
 
         try {
             CsvReader csvReader = new CsvReader(new FileReader(file));
@@ -67,7 +65,7 @@ public class AccountsCSVMarshaller {
                     throw new ImportException(
                             Translator.translate("notCSVFileError", 
                                     new Object[] {file.getAbsoluteFile(), 
-                                    new Long(csvReader.getCurrentRecord() + 1)})); 
+                                    csvReader.getCurrentRecord() + 1}));
                 }
                 accounts.add(new AccountInformation(
                         csvReader.get(0),
@@ -88,10 +86,10 @@ public class AccountsCSVMarshaller {
     private String[] getAccountAsStringArray(AccountInformation account) {
         String[] arr = new String[5];
         arr[0] = account.getAccountName();
-        arr[1] = new String(account.getUserId());
-        arr[2] = new String(account.getPassword());
-        arr[3] = new String(account.getUrl());
-        arr[4] = new String(account.getNotes());
+        arr[1] = account.getUserId();
+        arr[2] = account.getPassword();
+        arr[3] = account.getUrl();
+        arr[4] = account.getNotes();
         return arr;
     }
 
