@@ -22,6 +22,7 @@ package com._17od.upm.transport;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Locale;
 
 
 /**
@@ -52,14 +53,15 @@ public abstract class Transport {
     
     public abstract File getRemoteFile(String remoteLocation, String username, String password) throws TransportException;
 
-    public static Transport getTransportForURL(URL url) {
-        Transport retVal = null;
-        if (url.getProtocol().equals("http")) {
-            retVal = new HTTPTransport();
-        } else if (url.getProtocol().equals("https")) {
-            retVal = new HTTPTransport();
+    public static Transport getTransportForURL(String url) {
+        String lowerUrl = url.toLowerCase(Locale.getDefault());
+        if (lowerUrl.startsWith("http:") || lowerUrl.startsWith("https:")) {
+            return new HTTPTransport();
         }
-        return retVal;
+        if (lowerUrl.startsWith("webdav:") || lowerUrl.startsWith("webdavs:")) {
+            return new WebdavTransport();
+        }
+        return null;
     }
     
     public static boolean isASupportedProtocol(String protocol) {
@@ -69,6 +71,8 @@ public abstract class Transport {
         } else if (protocol.equals("https")) {
             supported = true;
         } else if (protocol.equals("file")) {
+            supported = true;
+        } else if (protocol.equals("webdav") || protocol.equals("webdavs")) {
             supported = true;
         }
         return supported;

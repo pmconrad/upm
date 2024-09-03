@@ -162,15 +162,17 @@ public class DatabasePropertiesDialog extends EscapeDialog {
         
     }
     
-    
     private URL validateURL(String urlString) {
-        URL url = null;
         try {
-            url = new URL(urlString);
+            if (urlString.startsWith("webdav:")
+                    || urlString.startsWith("webdavs:")) {
+                return new URL("http" + urlString.substring(6));
+            }
+            return new URL(urlString);
         } catch (MalformedURLException e) {
             // If we got here the the URL is invalid
+            return null;
         }
-        return url;
     }
     
     
@@ -201,7 +203,7 @@ public class DatabasePropertiesDialog extends EscapeDialog {
                     // If the remote location has changed then upload the database
                     if (!database.getDbOptions().getRemoteLocation().equals(remoteLocation)) {
                         try {
-                            Transport transport = Transport.getTransportForURL(url);
+                            Transport transport = Transport.getTransportForURL(remoteLocation);
                             if (!authEntry.isEmpty()) {
                                 String userId = database.getAccount(authEntry).getUserId();
                                 String password = database.getAccount(authEntry).getPassword();

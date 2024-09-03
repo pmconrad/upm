@@ -32,6 +32,7 @@ import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -47,12 +48,12 @@ import com._17od.upm.util.Preferences;
 
 public class HTTPTransport extends Transport {
 
-    private final HttpClient client;
+    protected final HttpClient client;
 
 
     public HTTPTransport() {
 
-        client = new HttpClient();
+        client = new HttpClient(new MultiThreadedHttpConnectionManager());
 
         boolean acceptSelfSignedCerts =
                 Boolean.parseBoolean(Preferences.get(
@@ -284,7 +285,7 @@ public class HTTPTransport extends Transport {
     }
 
     
-    private String addTrailingSlash(String url) {
+    protected static String addTrailingSlash(String url) {
         if (url.charAt(url.length() - 1) != '/') {
             url = url + '/';
         }
@@ -292,7 +293,7 @@ public class HTTPTransport extends Transport {
     }
 
     
-    private boolean isNotEmpty(String stringToCheck) {
+    protected static boolean isNotEmpty(String stringToCheck) {
         return stringToCheck != null && !stringToCheck.trim().isEmpty();
     }
 

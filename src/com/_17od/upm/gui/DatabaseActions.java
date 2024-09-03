@@ -29,7 +29,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -681,7 +681,7 @@ public class DatabaseActions {
             if (saveDatabaseTo != null) {
 
                 // Download the database
-                Transport transport = Transport.getTransportForURL(new URL(remoteLocation));
+                Transport transport = Transport.getTransportForURL(remoteLocation);
                 File downloadedDatabaseFile = transport.getRemoteFile(remoteLocation, username, password);
 
                 // Delete the file is it already exists
@@ -813,7 +813,7 @@ public class DatabaseActions {
             }
 
             // Download the database that's already at the remote location
-            Transport transport = Transport.getTransportForURL(new URL(remoteLocation));
+            Transport transport = Transport.getTransportForURL(remoteLocation);
             File remoteDatabaseFile = transport.getRemoteFile(remoteLocation, database.getDatabaseFile().getName(), httpUsername, httpPassword);
 
             // Attempt to decrypt the database using the password the user entered
