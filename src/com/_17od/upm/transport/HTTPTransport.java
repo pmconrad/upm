@@ -90,12 +90,6 @@ public class HTTPTransport extends Transport {
         }
 
     }
-
-
-    public void put(String targetLocation, File file) throws TransportException {
-        put(targetLocation, file, null, null);
-    }
-    
     
     public void put(String targetLocation, File file, String username, String password) throws TransportException {
 
@@ -155,17 +149,6 @@ public class HTTPTransport extends Transport {
     }
 
 
-    public byte[] get(String url, String fileName) throws TransportException {
-        return get(url, fileName, null, null);
-    }
-    
-    
-    public byte[] get(String url, String fileName, String username, String password) throws TransportException {
-        url = addTrailingSlash(url);
-        return get(url + fileName, username, password);
-    }
-    
-    
     public byte[] get(String url, String username, String password) throws TransportException {
 
         byte[] retVal = null;
@@ -205,36 +188,6 @@ public class HTTPTransport extends Transport {
         
         return retVal;
 
-    }
-
-    
-    public File getRemoteFile(String remoteLocation, String fileName) throws TransportException {
-        return getRemoteFile(remoteLocation, fileName, null, null);
-    }
-
-    
-    public File getRemoteFile(String remoteLocation) throws TransportException {
-        return getRemoteFile(remoteLocation, null, null);
-    }
-
-    
-    public File getRemoteFile(String remoteLocation, String fileName, String httpUsername, String httpPassword) throws TransportException {
-        remoteLocation = addTrailingSlash(remoteLocation);
-        return getRemoteFile(remoteLocation + fileName, httpUsername, httpPassword);
-    }
-
-
-    public File getRemoteFile(String remoteLocation, String httpUsername, String httpPassword) throws TransportException {
-        try {
-            byte[] remoteFile = get(remoteLocation, httpUsername, httpPassword);
-            File downloadedFile = File.createTempFile("upm", null);
-            FileOutputStream fos = new FileOutputStream(downloadedFile);
-            fos.write(remoteFile);
-            fos.close();
-            return downloadedFile;
-        } catch (IOException e) {
-            throw new TransportException(e);
-        }
     }
 
     
@@ -278,23 +231,4 @@ public class HTTPTransport extends Transport {
         }
 
     }
-
-
-    public void delete(String targetLocation, String name) throws TransportException {
-        delete(targetLocation, name, null, null);
-    }
-
-    
-    protected static String addTrailingSlash(String url) {
-        if (url.charAt(url.length() - 1) != '/') {
-            url = url + '/';
-        }
-        return url;
-    }
-
-    
-    protected static boolean isNotEmpty(String stringToCheck) {
-        return stringToCheck != null && !stringToCheck.trim().isEmpty();
-    }
-
 }

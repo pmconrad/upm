@@ -1,5 +1,5 @@
 /*
- * (C) 2013 Peter Conrad <conrad@quisquis.de>
+ * (C) 2013,2024 Peter Conrad <conrad@quisquis.de>
  *
  * This file is part of Universal Password Manager.
  *
@@ -19,166 +19,83 @@
  */
 package com._17od.upm.transport;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
-import java.net.MalformedURLException;
+import java.nio.file.Files;
 
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpURL;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpsURL;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.apache.webdav.lib.WebdavResource;
 
 /**
  *
  * @author Peter Conrad
  */
-public class WebdavTransport extends HTTPTransport {
-    private static class MyDavResource extends WebdavResource {
-        private HostConfiguration hostConfig;
+public class WebdavTransport extends Transport {
+    private static final Log log = LogFactory.getLog(WebdavTransport.class);
 
-        private MyDavResource(HttpClient httpClient) {
-            super(httpClient);
-            hostConfig = httpClient.getHostConfiguration();
-        }
-
-        public void setHttpURL(String url) throws HttpException, IOException {
-            HttpURL httpUrl;
-            if (url.startsWith("webdavs")) {
-                httpUrl = new HttpsURL("http" + url.substring(6));
-            } else if (url.startsWith("webdav")) {
-                httpUrl = new HttpURL("http" + url.substring(6));
-            } else if (url.startsWith("https")) {
-                httpUrl = new HttpsURL(url);
-            } else {
-                httpUrl = new HttpURL(url);
-            }
-            if (hostCredentials != null) {
-                UsernamePasswordCredentials cred = (UsernamePasswordCredentials) hostCredentials;
-                httpUrl.setUserinfo(cred.getUserName(), cred.getPassword());
-            }
-            if (hostConfig != null) { // avoid "host parameter is null"
-                hostConfig.setHost(httpUrl.getHost());
-            }
-            setHttpURL(httpUrl);
-        }
+    private Sardine open(String user, String pass) {
+        // FIXME: proxy settings?
+        return user == null || pass == null ? SardineFactory.begin() : SardineFactory.begin(user, pass);
     }
 
-    private static Log log = LogFactory.getLog(WebdavTransport.class);
-
-    private WebdavResource open() throws TransportException {
-        return new MyDavResource(client);
-    }
-
+    @Override
     public void put(String targetLocation, File file,
                     String username, String password) throws TransportException {
         log.info("Webdav.put('" + targetLocation + "', '" + file.getPath()
                  + "', " + (username != null ? "'" + username + "'" : "null")
                  + ", ...)");
-        WebdavResource davRes = open();
         try {
-            if (username != null) {
-                davRes.setCredentials(new UsernamePasswordCredentials(username, password));
+            Sardine sardine = open(username, password);
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                Files.copy(file.toPath(), bos);
+                sardine.put(addTrailingSlash(adjustUrl(targetLocation)) + file.getName(), bos.toByteArray());
             }
-            davRes.setHttpURL(addTrailingSlash(targetLocation) + file.getName());
-            if (!davRes.putMethod(file)) {
-                throw new TransportException("There's been some kind of problem uploading a file to the WebDAV server.");
-            }
-        } catch (FileNotFoundException e) {
-            throw new TransportException(e);
-        } catch (MalformedURLException e) {
-            throw new TransportException(e);
-        } catch (HttpException e) {
-            throw new TransportException(e);
-        } catch (IOException e) {
-            throw new TransportException(e);
-        } finally {
-            try {
-                davRes.close();
-            } catch (IOException ignore) {}
+        } catch (RuntimeException | IOException e) {
+            throw new TransportException("There's been some kind of problem uploading a file to the WebDAV server.", e);
         }
     }
 
+    @Override
     public byte[] get(String url, String username, String password)
             throws TransportException {
         log.info("Webdav.get('" + url + "', "
                  + (username != null ? "'" + username + "'" : "null")
                  + ", ...)");
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        WebdavResource davRes = open();
         try {
-            if (username != null) {
-                davRes.setCredentials(new UsernamePasswordCredentials(username, password));
+            Sardine sardine = open(username, password);
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    InputStream is = sardine.get(adjustUrl(url))) {
+                byte[] buf = new byte[1024];
+                int c;
+                while ((c = is.read(buf)) > 0) {
+                    bos.write(buf, 0, c);
+                }
+                return bos.toByteArray();
             }
-            davRes.setHttpURL(url);
-            if (davRes.isCollection()) {
-                throw new TransportException("URL is a collection!");
-            }
-            byte buf[] = new byte[1024];
-            int c;
-            InputStream is = davRes.getMethodData();
-            try {
-                do {
-                    c = is.read(buf);
-                    if (c > 0) {
-                        buffer.write(buf, 0, c);
-                    }
-                } while (c >= 0);
-            } finally {
-                is.close();
-            }
-        } catch (FileNotFoundException e) {
+        } catch (RuntimeException | IOException e) {
             throw new TransportException(e);
-        } catch (MalformedURLException e) {
-            throw new TransportException(e);
-        } catch (HttpException e) {
-            throw new TransportException(e);
-        } catch (IOException e) {
-            throw new TransportException(e);
-        } finally {
-            try {
-                davRes.close();
-            } catch (IOException ignore) {}
         }
-        return buffer.toByteArray();
     }
 
+    @Override
     public void delete(String targetLocation, String name,
                        String username, String password) throws TransportException {
         /* delete is only ever called right before put, so it isn't useful. Skip it.
         log.info("Webdav.delete('" + targetLocation + "', '" + name
                  + "', " + (username != null ? "'" + username + "'" : "null")
                  + ", ...)");
-        WebdavResource davRes = open();
         try {
-            if (username != null) {
-                davRes.setCredentials(new UsernamePasswordCredentials(username, password));
-            }
-            davRes.setHttpURL(addTrailingSlash(targetLocation) + name);
-            davRes.deleteMethod();
-        } catch (FileNotFoundException e) {
+            open(username, password).delete(addTrailingSlash(adjustUrl(targetLocation)) + name);
+        } catch (RuntimeException | IOException e) {
             throw new TransportException(e);
-        } catch (MalformedURLException e) {
-            throw new TransportException(e);
-        } catch (HttpException e) {
-            throw new TransportException(e);
-        } catch (IOException e) {
-            throw new TransportException(e);
-        } finally {
-            try {
-                davRes.close();
-            } catch (IOException ignore) {}
         }
         */
+    }
+
+    public static String adjustUrl(String url) {
+        if (url.startsWith("webdav")) { return "http" + url.substring(6); }
+        return url;
     }
 }
