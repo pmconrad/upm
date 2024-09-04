@@ -3,6 +3,7 @@ Universal Password Manager
 http://upm.sourceforge.net
 
 Copyright (C) 2005-2013 Adrian Smith
+Copyright (C) 2024 Peter Conrad
 
 Universal Password Manager is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -85,6 +86,9 @@ Contents
 
 6. History
    -------
+   04-Sep-2024 : Version 1.16
+     - Added support for WebDAV
+
    04-Feb-2019 : Version 1.15.1
      - Repackage the OS X tarball to work with the default JRE and Mojave
 

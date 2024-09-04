@@ -2,7 +2,8 @@
 
 <!--
  Universal Password Manager
- Copyright (C) 2005-2011 Adrian Smith
+ Copyright (C) 2005-2013 Adrian Smith
+ Copyright (C) 2024 Peter Conrad
 
  This file is part of Universal Password Manager.
    
@@ -36,7 +37,7 @@
     <property name="full.name" value="UPM"/>
     <property name="lib" value="lib"/>
     <property name="coveragereport.dir" value="coveragereport.dir"/>
-    <property name="version" value="1.15.2" />
+    <property name="version" value="1.16" />
 
 
     <!-- Define a classpath for use later on -->
