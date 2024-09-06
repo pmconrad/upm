@@ -39,11 +39,13 @@ public class AppleExtensionsCode extends PlatformSpecificCode {
                 e.setHandled(true);
             }
 
+            @Override
             public void handlePreferences(ApplicationEvent e) {
                 mainWindow.getOptionsButton().doClick();
                 e.setHandled(true);
             }
 
+            @Override
             public void handleQuit(ApplicationEvent e) {
                 mainWindow.getExitMenuItem().doClick();
                 e.setHandled(true);

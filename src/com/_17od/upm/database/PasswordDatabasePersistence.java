@@ -24,14 +24,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import com._17od.upm.crypto.CryptoException;
 import com._17od.upm.crypto.DESDecryptionService;
@@ -93,12 +93,12 @@ public class PasswordDatabasePersistence {
             throw new ProblemReadingDatabaseFile("This file doesn't appear to be a UPM password database");
         }
 
-        PasswordDatabase passwordDatabase = null;
-        ByteArrayInputStream is = null;
-        Revision revision = null;
-        DatabaseOptions dbOptions = null;
-        HashMap accounts = null;
-        Charset charset = Charset.forName("UTF-8");
+        PasswordDatabase passwordDatabase;
+        ByteArrayInputStream is;
+        Revision revision;
+        DatabaseOptions dbOptions;
+        HashMap<String,AccountInformation> accounts;
+        Charset charset = StandardCharsets.UTF_8;
 
         // Ensure this is a real UPM database by checking for the existence of 
         // the string "UPM" at the start of the file
@@ -143,7 +143,7 @@ public class PasswordDatabasePersistence {
                     dbOptions = new DatabaseOptions(is);
     
                     // Read the remainder of the database in now
-                    accounts = new HashMap();
+                    accounts = new HashMap<>();
                     try {
                         while (true) { //keep loading accounts until an EOFException is thrown
                             AccountInformation ai = new AccountInformation(is, charset);
@@ -187,10 +187,10 @@ public class PasswordDatabasePersistence {
             throw new ProblemReadingDatabaseFile("This file doesn't appear to be a UPM password database");
         }
 
-        ByteArrayInputStream is = null;
-        Revision revision = null;
-        DatabaseOptions dbOptions = null;
-        Charset charset = Charset.forName("UTF-8");
+        ByteArrayInputStream is;
+        Revision revision;
+        DatabaseOptions dbOptions;
+        Charset charset = StandardCharsets.UTF_8;
 
         // Ensure this is a real UPM database by checking for the existence of 
         // the string "UPM" at the start of the file
@@ -283,7 +283,7 @@ public class PasswordDatabasePersistence {
         }
         
         // Read the remainder of the database in now
-        HashMap accounts = new HashMap();
+        HashMap<String,AccountInformation> accounts = new HashMap<>();
         try {
             while (true) { //keep loading accounts until an EOFException is thrown
                 AccountInformation ai = new AccountInformation(is, charset);
@@ -294,9 +294,7 @@ public class PasswordDatabasePersistence {
         }
         is.close();
 
-        PasswordDatabase passwordDatabase = new PasswordDatabase(revision, dbOptions, accounts, databaseFile);
-        
-        return passwordDatabase;
+        return new PasswordDatabase(revision, dbOptions, accounts, databaseFile);
 
     }
 
@@ -309,9 +307,7 @@ public class PasswordDatabasePersistence {
         database.getDbOptions().flatPack(os);
 
         // Flatpack the accounts
-        Iterator it = database.getAccountsHash().values().iterator();
-        while (it.hasNext()) {
-            AccountInformation ai = (AccountInformation) it.next();
+        for (AccountInformation ai : database.getAccountsHash().values()) {
             ai.flatPack(os);
         }
         os.close();
@@ -334,35 +330,26 @@ public class PasswordDatabasePersistence {
     }
 
     private byte[] readFile(File file) throws IOException {
-        InputStream is;
-        try {
-            is = new FileInputStream(file);
-        } catch (IOException e) {
-            throw new IOException("There was a problem with opening the file", e);
-        }
-    
-        // Create the byte array to hold the data
-        byte[] bytes = new byte[(int) file.length()];
-    
-        // Read in the bytes
-        int offset = 0;
-        int numRead = 0;
-        
-        try {
+        try (InputStream is = Files.newInputStream(file.toPath())) {
+
+            // Create the byte array to hold the data
+            byte[] bytes = new byte[(int) file.length()];
+
+            // Read in the bytes
+            int offset = 0;
+            int numRead = 0;
+
             while (offset < bytes.length
                     && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
                 offset += numRead;
             }
-    
+
             // Ensure all the bytes have been read in
             if (offset < bytes.length) {
                 throw new IOException("Could not completely read file " + file.getName());
             }
-        } finally {
-            is.close();
+            return bytes;
         }
-
-        return bytes;
     }
 
 }

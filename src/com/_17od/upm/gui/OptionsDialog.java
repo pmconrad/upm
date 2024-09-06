@@ -78,7 +78,7 @@ public class OptionsDialog extends EscapeDialog {
 	private JLabel proxyPortLabel;
 	private JLabel proxyUsernameLabel;
 	private JLabel proxyPasswordLabel;
-	private JComboBox localeComboBox;
+	private JComboBox<String> localeComboBox;
 	private boolean okClicked = false;
 	private JFrame parentFrame;
 	private boolean languageChanged;
@@ -163,7 +163,7 @@ public class OptionsDialog extends EscapeDialog {
 		mainPanel.add(localeLabel, c);
 
 		// The "Locale" field row
-		localeComboBox = new JComboBox(getSupportedLocaleNames());
+		localeComboBox = new JComboBox<>(getSupportedLocaleNames());
 		for (int i = 0; i < localeComboBox.getItemCount(); i++) {
 			// If the locale language is blank then set it to the English
 			// language
@@ -171,7 +171,7 @@ public class OptionsDialog extends EscapeDialog {
 			// locale
 			// is English???
 			String currentLanguage = Translator.getCurrentLocale().getLanguage();
-			if (currentLanguage.equals("")) {
+			if (currentLanguage.isEmpty()) {
 				currentLanguage = "en";
 			}
 
@@ -191,10 +191,10 @@ public class OptionsDialog extends EscapeDialog {
 		mainPanel.add(localeComboBox, c);
 
 		// The "Hide account password" row
-		Boolean hideAccountPassword = new Boolean(
+		boolean hideAccountPassword = Boolean.parseBoolean(
 				Preferences.get(Preferences.ApplicationOptions.ACCOUNT_HIDE_PASSWORD, "true"));
 		hideAccountPasswordCheckbox = new JCheckBox(Translator.translate("hideAccountPassword"),
-				hideAccountPassword.booleanValue());
+				hideAccountPassword);
 		c.gridx = 0;
 		c.gridy = 4;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -206,10 +206,10 @@ public class OptionsDialog extends EscapeDialog {
 		mainPanel.add(hideAccountPasswordCheckbox, c);
 
 		// The "Database auto lock" row
-		Boolean databaseAutoLock = new Boolean(
+		boolean databaseAutoLock = Boolean.parseBoolean(
 				Preferences.get(Preferences.ApplicationOptions.DATABASE_AUTO_LOCK, "false"));
 		databaseAutoLockCheckbox = new JCheckBox(Translator.translate("databaseAutoLock"),
-				databaseAutoLock.booleanValue());
+				databaseAutoLock);
 		c.gridx = 0;
 		c.gridy = 5;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -264,10 +264,10 @@ public class OptionsDialog extends EscapeDialog {
 		mainPanel.add(accountPasswordLength, c);
 
 		// The "Include Escape Characters to Generated Passwords" row
-		Boolean inclEscCharstoPass = new Boolean(
+		boolean inclEscCharstoPass = Boolean.parseBoolean(
 				Preferences.get(Preferences.ApplicationOptions.INCLUDE_ESCAPE_CHARACTERS, "true"));
 		inclEscCharstoPassCheckbox = new JCheckBox((Translator.translate("includePunctuationCharacters")),
-				inclEscCharstoPass.booleanValue());
+				inclEscCharstoPass);
 		c.gridx = 0;
 		c.gridy = 7;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -279,10 +279,10 @@ public class OptionsDialog extends EscapeDialog {
 		mainPanel.add(inclEscCharstoPassCheckbox, c);
 
 		// The "Store Window position" row
-		Boolean storeWindowPos = Boolean
-				.valueOf(Preferences.get(Preferences.ApplicationOptions.REMEMBER_WINDOW_POSITION, "false"));
+		boolean storeWindowPos = Boolean
+				.parseBoolean(Preferences.get(Preferences.ApplicationOptions.REMEMBER_WINDOW_POSITION, "false"));
 		storeWindowPosCheckbox = new JCheckBox((Translator.translate("storeWindowPosition")),
-				storeWindowPos.booleanValue());
+				storeWindowPos);
 		c.gridx = 0;
 		c.gridy = 8;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -294,10 +294,10 @@ public class OptionsDialog extends EscapeDialog {
 		mainPanel.add(storeWindowPosCheckbox, c);
 
 		// The "Application always on top" row
-		Boolean appAlwaysonTop = new Boolean(
+		boolean appAlwaysonTop = Boolean.parseBoolean(
 				Preferences.get(Preferences.ApplicationOptions.MAINWINDOW_ALWAYS_ON_TOP, "false"));
 		appAlwaysonTopCheckbox = new JCheckBox((Translator.translate("applicationAlwaysonTop")),
-				appAlwaysonTop.booleanValue());
+				appAlwaysonTop);
 		c.gridx = 0;
 		c.gridy = 9;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -321,10 +321,10 @@ public class OptionsDialog extends EscapeDialog {
 		emptyBorderPanel.add(httpsPanel);
 
 		// The "Accept Self Sigend Certificates" checkbox row
-		Boolean acceptSelfSignedCerts = new Boolean(
+		boolean acceptSelfSignedCerts = Boolean.parseBoolean(
 				Preferences.get(Preferences.ApplicationOptions.HTTPS_ACCEPT_SELFSIGNED_CERTS, "false"));
 		acceptSelfSignedCertsCheckbox = new JCheckBox(Translator.translate("acceptSelfSignedCerts"),
-				acceptSelfSignedCerts.booleanValue());
+				acceptSelfSignedCerts);
 		c.gridx = 0;
 		c.gridy = 0;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -346,15 +346,11 @@ public class OptionsDialog extends EscapeDialog {
 		emptyBorderPanel.add(proxyPanel);
 
 		// The "Enable Proxy" row
-		Boolean proxyEnabled = new Boolean(Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_ENABLED));
-		enableProxyCheckbox = new JCheckBox(Translator.translate("enableProxy"), proxyEnabled.booleanValue());
+		boolean proxyEnabled = Boolean.parseBoolean(Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_ENABLED));
+		enableProxyCheckbox = new JCheckBox(Translator.translate("enableProxy"), proxyEnabled);
 		enableProxyCheckbox.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					enableProxyComponents(true);
-				} else {
-					enableProxyComponents(false);
-				}
+				enableProxyComponents(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 		c.gridx = 0;
@@ -513,7 +509,7 @@ public class OptionsDialog extends EscapeDialog {
 		});
 		buttonPanel.add(cancelButton);
 
-		enableProxyComponents(proxyEnabled.booleanValue());
+		enableProxyComponents(proxyEnabled);
 	}
 
 	private void enableProxyComponents(boolean enable) {
@@ -535,7 +531,7 @@ public class OptionsDialog extends EscapeDialog {
 	private void okButtonAction() {
 		try {
 			if (databaseAutoLockCheckbox.isSelected()) {
-				if (databaseAutoLockTime.getText() == null || databaseAutoLockTime.getText().trim().equals("")
+				if (databaseAutoLockTime.getText() == null || databaseAutoLockTime.getText().trim().isEmpty()
 						|| !Util.isNumeric(databaseAutoLockTime.getText())) {
 					JOptionPane.showMessageDialog(OptionsDialog.this,
 							Translator.translate("invalidValueForDatabaseAutoLockTime"),
@@ -545,7 +541,7 @@ public class OptionsDialog extends EscapeDialog {
 				}
 			}
 
-			if (accountPasswordLength.getText() == null || accountPasswordLength.getText().trim().equals("")
+			if (accountPasswordLength.getText() == null || accountPasswordLength.getText().trim().isEmpty()
 					|| !Util.isNumeric(accountPasswordLength.getText())) {
 				JOptionPane.showMessageDialog(OptionsDialog.this,
 						Translator.translate("invalidValueForAccountPasswordLength"), Translator.translate("problem"),
@@ -611,8 +607,8 @@ public class OptionsDialog extends EscapeDialog {
 		}
 	}
 
-	private Object[] getSupportedLocaleNames() {
-		Object[] names = new Object[Translator.SUPPORTED_LOCALES.length];
+	private String[] getSupportedLocaleNames() {
+		String[] names = new String[Translator.SUPPORTED_LOCALES.length];
 
 		for (int i = 0; i < Translator.SUPPORTED_LOCALES.length; i++) {
 			names[i] = Translator.SUPPORTED_LOCALES[i].getDisplayLanguage(Translator.getCurrentLocale()) + " ("

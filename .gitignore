@@ -1,6 +1,6 @@
 *~
 build.properties
-build/
+/build/
 testbuild/
 TEST-*.txt
 build.instrumented/
@@ -9,3 +9,4 @@ coveragereport.dir/
 dist/
 nsis/upm-*.exe
 deps/
+out

@@ -1,3 +1,9 @@
+upm (1.16-1~ppa1) precise; urgency=low
+
+  * Added WebDAV transport
+
+ -- Peter Conrad <conrad@quisquis.de>  Tue, 04 Sep 2024 12:41:31 +0000
+
 upm (1.12-1~ppa1) precise; urgency=low
 
   * Added Polish translation

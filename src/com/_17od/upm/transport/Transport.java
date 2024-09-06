@@ -21,7 +21,10 @@
 package com._17od.upm.transport;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
+import java.util.Locale;
 
 
 /**
@@ -31,35 +34,65 @@ import java.net.URL;
 public abstract class Transport {
 
     public abstract void put(String targetLocation, File file, String username, String password) throws TransportException;
-    
-    public abstract void put(String targetLocation, File file) throws TransportException;
 
-    public abstract byte[] get(String url, String fileName) throws TransportException;
+    public void put(String targetLocation, File file) throws TransportException {
+        put(targetLocation, file, null, null);
+    }
 
-    public abstract byte[] get(String url, String fileName, String username, String password) throws TransportException;
+    public byte[] get(String url, String fileName) throws TransportException {
+        return get(url, fileName, null, null);
+    }
+
+    public byte[] get(String url, String fileName, String username, String password) throws TransportException {
+        url = addTrailingSlash(url);
+        return get(url + fileName, username, password);
+    }
 
     public abstract byte[] get(String url, String username, String password) throws TransportException;
 
     public abstract void delete(String targetLocation, String name, String username, String password) throws TransportException;
 
-    public abstract void delete(String targetLocation, String name) throws TransportException;
+    public void delete(String targetLocation, String name) throws TransportException {
+        delete(targetLocation, name, null, null);
+    }
 
-    public abstract File getRemoteFile(String remoteLocation, String fileName) throws TransportException;
+    public File getRemoteFile(String remoteLocation, String fileName) throws TransportException {
+        return getRemoteFile(remoteLocation, fileName, null, null);
+    }
 
-    public abstract File getRemoteFile(String remoteLocation) throws TransportException;
 
-    public abstract File getRemoteFile(String remoteLocation, String fileName, String username, String password) throws TransportException;
-    
-    public abstract File getRemoteFile(String remoteLocation, String username, String password) throws TransportException;
+    public File getRemoteFile(String remoteLocation) throws TransportException {
+        return getRemoteFile(remoteLocation, null, null);
+    }
 
-    public static Transport getTransportForURL(URL url) {
-        Transport retVal = null;
-        if (url.getProtocol().equals("http")) {
-            retVal = new HTTPTransport();
-        } else if (url.getProtocol().equals("https")) {
-            retVal = new HTTPTransport();
+
+    public File getRemoteFile(String remoteLocation, String fileName, String httpUsername, String httpPassword) throws TransportException {
+        remoteLocation = addTrailingSlash(remoteLocation);
+        return getRemoteFile(remoteLocation + fileName, httpUsername, httpPassword);
+    }
+
+    public File getRemoteFile(String remoteLocation, String httpUsername, String httpPassword) throws TransportException {
+        try {
+            byte[] remoteFile = get(remoteLocation, httpUsername, httpPassword);
+            File downloadedFile = File.createTempFile("upm", null);
+            try (FileOutputStream fos = new FileOutputStream(downloadedFile)) {
+                fos.write(remoteFile);
+            }
+            return downloadedFile;
+        } catch (IOException e) {
+            throw new TransportException(e);
         }
-        return retVal;
+    }
+
+    public static Transport getTransportForURL(String url) {
+        String lowerUrl = url.toLowerCase(Locale.getDefault());
+        if (lowerUrl.startsWith("http:") || lowerUrl.startsWith("https:")) {
+            return new HTTPTransport();
+        }
+        if (lowerUrl.startsWith("webdav:") || lowerUrl.startsWith("webdavs:")) {
+            return new WebdavTransport();
+        }
+        return null;
     }
     
     public static boolean isASupportedProtocol(String protocol) {
@@ -70,7 +103,20 @@ public abstract class Transport {
             supported = true;
         } else if (protocol.equals("file")) {
             supported = true;
+        } else if (protocol.equals("webdav") || protocol.equals("webdavs")) {
+            supported = true;
         }
         return supported;
+    }
+
+    protected static String addTrailingSlash(String url) {
+        if (url.charAt(url.length() - 1) != '/') {
+            url = url + '/';
+        }
+        return url;
+    }
+
+    protected static boolean isNotEmpty(String stringToCheck) {
+        return stringToCheck != null && !stringToCheck.trim().isEmpty();
     }
 }

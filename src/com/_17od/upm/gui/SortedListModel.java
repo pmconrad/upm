@@ -21,27 +21,23 @@
 package com._17od.upm.gui;
 
 import java.text.Collator;
-import java.util.Comparator;
 import java.util.TreeSet;
 import javax.swing.AbstractListModel;
 
 
-public class SortedListModel extends AbstractListModel {
+public class SortedListModel<T> extends AbstractListModel<T> {
 
     private static final long serialVersionUID = 1L;
 
-    private TreeSet model;
+    private final TreeSet<T> model;
 
 
     public SortedListModel() {
-        model = new TreeSet(new Comparator() {
-            public int compare(Object o1, Object o2) {
-                String str1 = o1.toString();
-                String str2 = o2.toString();
-                Collator collator = Collator.getInstance();
-                int result = collator.compare(str1, str2);
-                return result;
-            }
+        model = new TreeSet<T>((o1, o2) -> {
+            String str1 = o1.toString();
+            String str2 = o2.toString();
+            Collator collator = Collator.getInstance();
+            return collator.compare(str1, str2);
         });
     }
 
@@ -51,12 +47,15 @@ public class SortedListModel extends AbstractListModel {
     }
 
 
-    public Object getElementAt(int index) {
-        return model.toArray()[index];
+    public T getElementAt(int index) {
+        if (index < 0 || index >= model.size()) {
+            throw new ArrayIndexOutOfBoundsException("Tried to access element " + index + " of " + model.size());
+        }
+        return model.stream().skip(index).findFirst().get();
     }
 
 
-    public void addElement(Object element) {
+    public void addElement(T element) {
         if (model.add(element)) {
             fireContentsChanged(this, 0, getSize());
         }
@@ -69,12 +68,12 @@ public class SortedListModel extends AbstractListModel {
     }
 
 
-    public boolean contains(Object element) {
+    public boolean contains(T element) {
         return model.contains(element);
     }
 
 
-    public boolean removeElement(Object element) {
+    public boolean removeElement(T element) {
         boolean removed = model.remove(element);
         if (removed) {
             fireContentsChanged(this, 0, getSize());

@@ -32,6 +32,7 @@ import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -47,17 +48,17 @@ import com._17od.upm.util.Preferences;
 
 public class HTTPTransport extends Transport {
 
-    private HttpClient client;
+    protected final HttpClient client;
 
 
     public HTTPTransport() {
 
-        client = new HttpClient();
+        client = new HttpClient(new MultiThreadedHttpConnectionManager());
 
-        Boolean acceptSelfSignedCerts =
-                new Boolean(Preferences.get(
+        boolean acceptSelfSignedCerts =
+                Boolean.parseBoolean(Preferences.get(
                         Preferences.ApplicationOptions.HTTPS_ACCEPT_SELFSIGNED_CERTS));
-        if (acceptSelfSignedCerts.booleanValue()) {
+        if (acceptSelfSignedCerts) {
             // Create a Protcol handler which contains a HTTPS socket factory
             // capable of accepting self signed and otherwise invalid certificates.
             Protocol httpsProtocol = new Protocol("https",
@@ -67,8 +68,8 @@ public class HTTPTransport extends Transport {
         }
 
         //Get the proxy settings
-        Boolean proxyEnabled = new Boolean(Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_ENABLED));
-        if (proxyEnabled.booleanValue()) {
+        boolean proxyEnabled = Boolean.parseBoolean(Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_ENABLED));
+        if (proxyEnabled) {
             String proxyHost = Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_HOST);
             String proxyPortStr = Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_PORT);
             String proxyUserName = Preferences.get(Preferences.ApplicationOptions.HTTP_PROXY_USERNAME);
@@ -89,12 +90,6 @@ public class HTTPTransport extends Transport {
         }
 
     }
-
-
-    public void put(String targetLocation, File file) throws TransportException {
-        put(targetLocation, file, null, null);
-    }
-    
     
     public void put(String targetLocation, File file, String username, String password) throws TransportException {
 
@@ -115,7 +110,7 @@ public class HTTPTransport extends Transport {
 
             //Set the HTTP authentication details
             if (username != null) {
-                Credentials creds = new UsernamePasswordCredentials(new String(username), new String(password));
+                Credentials creds = new UsernamePasswordCredentials(username, password);
                 URL url = new URL(targetLocation);
                 AuthScope authScope = new AuthScope(url.getHost(), url.getPort());
                 client.getState().setCredentials(authScope, creds);
@@ -154,17 +149,6 @@ public class HTTPTransport extends Transport {
     }
 
 
-    public byte[] get(String url, String fileName) throws TransportException {
-        return get(url, fileName, null, null);
-    }
-    
-    
-    public byte[] get(String url, String fileName, String username, String password) throws TransportException {
-        url = addTrailingSlash(url);
-        return get(url + fileName, username, password);
-    }
-    
-    
     public byte[] get(String url, String username, String password) throws TransportException {
 
         byte[] retVal = null;
@@ -177,7 +161,7 @@ public class HTTPTransport extends Transport {
 
             //Set the authentication details
             if (username != null) {
-                Credentials creds = new UsernamePasswordCredentials(new String(username), new String(password));
+                Credentials creds = new UsernamePasswordCredentials(username, password);
                 URL urlObj = new URL(url);
                 AuthScope authScope = new AuthScope(urlObj.getHost(), urlObj.getPort());
                 client.getState().setCredentials(authScope, creds);
@@ -207,36 +191,6 @@ public class HTTPTransport extends Transport {
     }
 
     
-    public File getRemoteFile(String remoteLocation, String fileName) throws TransportException {
-        return getRemoteFile(remoteLocation, fileName, null, null);
-    }
-
-    
-    public File getRemoteFile(String remoteLocation) throws TransportException {
-        return getRemoteFile(remoteLocation, null, null);
-    }
-
-    
-    public File getRemoteFile(String remoteLocation, String fileName, String httpUsername, String httpPassword) throws TransportException {
-        remoteLocation = addTrailingSlash(remoteLocation);
-        return getRemoteFile(remoteLocation + fileName, httpUsername, httpPassword);
-    }
-
-
-    public File getRemoteFile(String remoteLocation, String httpUsername, String httpPassword) throws TransportException {
-        try {
-            byte[] remoteFile = get(remoteLocation, httpUsername, httpPassword);
-            File downloadedFile = File.createTempFile("upm", null);
-            FileOutputStream fos = new FileOutputStream(downloadedFile);
-            fos.write(remoteFile);
-            fos.close();
-            return downloadedFile;
-        } catch (IOException e) {
-            throw new TransportException(e);
-        }
-    }
-
-    
     public void delete(String targetLocation, String name, String username, String password) throws TransportException {
 
         targetLocation = addTrailingSlash(targetLocation) + "deletefile.php";
@@ -250,7 +204,7 @@ public class HTTPTransport extends Transport {
 
             //Set the authentication details
             if (username != null) {
-                Credentials creds = new UsernamePasswordCredentials(new String(username), new String(password));
+                Credentials creds = new UsernamePasswordCredentials(username, password);
                 URL url = new URL(targetLocation);
                 AuthScope authScope = new AuthScope(url.getHost(), url.getPort());
                 client.getState().setCredentials(authScope, creds);
@@ -277,27 +231,4 @@ public class HTTPTransport extends Transport {
         }
 
     }
-
-
-    public void delete(String targetLocation, String name) throws TransportException {
-        delete(targetLocation, name, null, null);
-    }
-
-    
-    private String addTrailingSlash(String url) {
-        if (url.charAt(url.length() - 1) != '/') {
-            url = url + '/';
-        }
-        return url;
-    }
-
-    
-    private boolean isNotEmpty(String stringToCheck) {
-        boolean retVal = false;
-        if (stringToCheck != null && !stringToCheck.trim().equals("")) {
-            retVal = true;
-        }
-        return retVal;
-    }
-
 }

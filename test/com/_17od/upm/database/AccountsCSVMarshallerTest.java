@@ -51,7 +51,7 @@ public class AccountsCSVMarshallerTest extends TestCase {
                 "http://www.test.com1",
                 "this is a test note1");
 
-        ArrayList accounts = new ArrayList();
+        ArrayList<AccountInformation> accounts = new ArrayList<AccountInformation>();
         accounts.add(account);
 
         // Marshall the database out to a CSV file
@@ -86,7 +86,7 @@ public class AccountsCSVMarshallerTest extends TestCase {
                 "http://www.test.com3",
                 "this is a test note3");
 
-        ArrayList accounts = new ArrayList();
+        ArrayList<AccountInformation> accounts = new ArrayList<AccountInformation>();
         accounts.add(account1);
         accounts.add(account2);
         accounts.add(account3);
@@ -115,7 +115,7 @@ public class AccountsCSVMarshallerTest extends TestCase {
                 "http://www.test.com1",
                 "this is a \ntest note1");
 
-        ArrayList accounts = new ArrayList();
+        ArrayList<AccountInformation> accounts = new ArrayList<>();
         accounts.add(account);
 
         // Marshall the database out to a CSV file
@@ -138,7 +138,7 @@ public class AccountsCSVMarshallerTest extends TestCase {
                 "http://www.test.com1",
                 "this is a ,test note1");
 
-        ArrayList accounts = new ArrayList();
+        ArrayList<AccountInformation> accounts = new ArrayList<AccountInformation>();
         accounts.add(account);
 
         // Marshall the database out to a CSV file
@@ -161,7 +161,7 @@ public class AccountsCSVMarshallerTest extends TestCase {
                 "http://www.test.com1",
                 "this is a test note1");
 
-        ArrayList accounts = new ArrayList();
+        ArrayList<AccountInformation> accounts = new ArrayList<AccountInformation>();
         accounts.add(account);
 
         // Marshall the database out to a CSV file
@@ -172,7 +172,7 @@ public class AccountsCSVMarshallerTest extends TestCase {
 
         // do the import and ensure the AccountInformation object we get back 
         // is correct
-        ArrayList importedAccounts = marshaller.unmarshal(csvFile);
+        ArrayList<AccountInformation> importedAccounts = marshaller.unmarshal(csvFile);
         assertNotNull(importedAccounts);
         assertEquals(1, importedAccounts.size());
         assertEquals(account, (AccountInformation) importedAccounts.get(0));
@@ -180,18 +180,18 @@ public class AccountsCSVMarshallerTest extends TestCase {
 
     private void assertEquals(AccountInformation expected, AccountInformation actual) {
         assertEquals(expected.getAccountName(), actual.getAccountName());
-        assertEquals(new String(expected.getUserId()), new String(actual.getUserId()));
-        assertEquals(new String(expected.getPassword()), new String(actual.getPassword()));
-        assertEquals(new String(expected.getUrl()), new String(actual.getUrl()));
-        assertEquals(new String(expected.getNotes()), new String(actual.getNotes()));
+        assertEquals(expected.getUserId(), actual.getUserId());
+        assertEquals(expected.getPassword(), actual.getPassword());
+        assertEquals(expected.getUrl(), actual.getUrl());
+        assertEquals(expected.getNotes(), actual.getNotes());
     }
 
     private void assertEquals(AccountInformation expected, String[] actual) {
         assertEquals(expected.getAccountName(), actual[0]);
-        assertEquals(new String(expected.getUserId()), actual[1]);
-        assertEquals(new String(expected.getPassword()), actual[2]);
-        assertEquals(new String(expected.getUrl()), actual[3]);
-        assertEquals(new String(expected.getNotes()), actual[4]);
+        assertEquals(expected.getUserId(), actual[1]);
+        assertEquals(expected.getPassword(), actual[2]);
+        assertEquals(expected.getUrl(), actual[3]);
+        assertEquals(expected.getNotes(), actual[4]);
     }
 
 }
